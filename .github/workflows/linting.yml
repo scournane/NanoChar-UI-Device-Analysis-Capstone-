@@ -1,0 +1,33 @@
+name: Linting
+
+on:
+  push:
+    branches: [ main ]  # On pushes to main
+  pull_request:
+    branches: [ main ]  # On pull to main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest  # Use most recent Ubuntu
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # Check Python Version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black  # Install Flake8 and Black
+
+      - name: Run flake8
+        run: |
+          flake8 . #--max-line-length=88  # Adjust max-line-length to match Black's default of 88
+
+      - name: Run Black
+        run: |
+          black --check .  # Use --check to avoid modifying files, just check formatting

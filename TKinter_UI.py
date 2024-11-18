@@ -1,8 +1,9 @@
 import tkinter
 import customtkinter
+import time
 
-customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
-customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
+customtkinter.set_appearance_mode("dark")  # Modes: system (default), light, dark
+customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-blue, green
 
 app = customtkinter.CTk()  # create CTk window 
 app.geometry("1366x768")
@@ -20,24 +21,24 @@ tabview.grid(row=0, column=1)
 
 #Tabs
 #===========================================
-TABsettings = tabview.add("Settings")  # add tab at the end
-TABtable = tabview.add("Table")  # add tab at the end
-TABgraph = tabview.add("Graph")  # add tab at the end
+TABsettings = tabview.add("Settings")  
+TABtable = tabview.add("Table")
+TABgraph = tabview.add("Graph")  
 tabview.set("Settings")  # set currently visible tab
 
 #Add Instrument Frame
 #===========================================
 def show_panel():
     # Create a frame for the popup panel
-    popup_frame = customtkinter.CTkFrame(app,  width=500, height=400, border_width = 200)
-    popup_frame.place(anchor="nw")  # Center the panel in the main window
+    inst_frame = customtkinter.CTkFrame(app,  width=300, height=400, border_width = 1)
+    inst_frame.place(x=27, y=20)  # Center the panel in the main window
 
     # Add content to the panel
-    lbl = customtkinter.CTkLabel(popup_frame, text="Available Hardware:", height=100, anchor='n', pady=200, padx=200)
-    btn = customtkinter.CTkButton(popup_frame, text="Close", command=popup_frame.destroy)
+    inst_label = customtkinter.CTkLabel(inst_frame, text="Available Hardware:", height=100, anchor='n')
+    inst_button = customtkinter.CTkButton(inst_frame, text="Close", command=inst_frame.destroy)
 
-    lbl.grid(row=0, column=0)
-    btn.grid(row=1, column=0)
+    inst_label.grid(row=0, column=0, pady=100, padx=100)
+    inst_button.grid(row=1, column=0, padx=5, pady=5)
 
 
 frame = customtkinter.CTkFrame(app, width=300, height=700)
@@ -47,8 +48,8 @@ frame.grid(row=0, column=0)
 button = customtkinter.CTkButton(master=app, text="Add Instrument", command=show_panel)
 button.place(x=110, y=80)
 
-entry = customtkinter.CTkEntry(master=tabview.tab("Table"), placeholder_text="CTkEntry")
-entry.grid(row=4, column=0)
+#entry = customtkinter.CTkEntry(master=tabview.tab("Table"), placeholder_text="CTkEntry")
+#entry.grid(row=4, column=0)
 
 
 
@@ -61,14 +62,11 @@ radio_var = tkinter.IntVar(value=0)
 radiobutton_1 = customtkinter.CTkRadioButton(master=tabview.tab("Settings"), text="Voltage", command=radiobutton_event, variable=radio_var, value=1)
 radiobutton_2 = customtkinter.CTkRadioButton(master=tabview.tab("Settings"), text="Current", command=radiobutton_event, variable=radio_var, value=2)
 
-#radiobutton_1.pack(padx=20, pady=5)
-#radiobutton_2.pack(padx=20, pady=5)
 radiobutton_1.grid(row=1, column=2)
 radiobutton_2.grid(row=1, column=3)
 
 label = customtkinter.CTkLabel(master=tabview.tab("Settings"), text="Type", fg_color="transparent", pady=10)
 label.grid(row=1, column=0)
-
 
 #LABEL EXAMPLE WITH ENTRY==========================
 label = customtkinter.CTkLabel(master=tabview.tab("Settings"), text="Start", fg_color="transparent", padx=5, pady=10)
@@ -91,14 +89,23 @@ combobox = customtkinter.CTkComboBox(master=tabview.tab("Settings"), values=["DC
 combobox.set("DC")
 combobox.grid(row=10, column=2)
 
+#Changing Label================================
+labelchg = customtkinter.CTkLabel(master=tabview.tab("Settings"), text="0", fg_color="transparent", pady=10)
+labelchg.grid(row=11, column=0)
+labelchg.configure(text=time)
 
+#Progress Bar=====================
+progressbar = customtkinter.CTkProgressBar(master=tabview.tab("Settings"), orientation="horizontal")
+progressbar.grid(row=12, column=0)
+progressbar.start()
 
-
-
-
-
-# Use CTkButton instead of tkinter Button
-#button = customtkinter.CTkButton(master=app, text="CTkButton", command=button_function)
-#button.place(relx=0.5, rely=0.5, anchor=customtkinter.CENTER)
+#==============================
+#TABLE TAB
+height = 20
+width = 10
+for i in range(height): #Rows
+    for j in range(width): #Columns
+        b = customtkinter.CTkLabel(master=tabview.tab("Table"), text="0", fg_color='gray20', width=90, height=25)
+        b.grid(row=i, column=j, padx=1, pady=1)
 
 app.mainloop()

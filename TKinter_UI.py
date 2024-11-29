@@ -45,12 +45,19 @@ def update_instrument_list():
 
     # Add labels for each instrument
     for idx, instrument in enumerate(instruments_list):
-        label_inst = customtkinter.CTkLabel(scrollable_frame, text=f"{instrument['name']}")
-        label_inst.pack(pady=5)
+        label_inst = customtkinter.CTkLabel(scrollable_frame, text=f"{instrument['name']}", font=('Arial', 14, 'bold'))
+        label_inst.pack(pady=(10, 0))
 
         # Display parameters
-        label_params = customtkinter.CTkLabel(scrollable_frame, text=f"{instrument['voltage_type']}, {instrument['sweep_type']}\n{instrument['start_voltage']}V - {instrument['end_voltage']}V\nStep: {instrument['step_size']}V\nLimit: {instrument['limit']}A\nMeasure: {instrument['measure']}")
-        label_params.pack(pady=5)
+        params_text = (
+            f"{instrument['voltage_type']}, {instrument['sweep_type']}\n"
+            f"{instrument['start_voltage']}V - {instrument['end_voltage']}V\n"
+            f"Step: {instrument['step_size']}V\n"
+            f"Limit: {instrument['limit']}A\n"
+            f"Measure: {instrument['measure']}"
+        )
+        label_params = customtkinter.CTkLabel(scrollable_frame, text=params_text)
+        label_params.pack(pady=(0, 10))
 
 # Function to show the Add Instrument panel
 def show_panel():
@@ -58,6 +65,11 @@ def show_panel():
     inst_window = customtkinter.CTkToplevel(app)
     inst_window.geometry("400x500")
     inst_window.title("Add Instrument")
+
+    # Bring the window to the front
+    inst_window.transient(app)  # Set to be on top of main window
+    inst_window.grab_set()      # Make the popup modal
+    inst_window.focus_force()   # Focus on the popup
 
     # Instrument Name
     label_name = customtkinter.CTkLabel(inst_window, text="Instrument Name:")
@@ -141,9 +153,13 @@ def show_panel():
         update_instrument_list()
 
     button_add = customtkinter.CTkButton(inst_window, text="Add", command=add_instrument)
-    button_add.grid(row=8, column=0, padx=10, pady=10)
+    button_add.grid(row=8, column=0, padx=10, pady=20)
     button_cancel = customtkinter.CTkButton(inst_window, text="Cancel", command=inst_window.destroy)
-    button_cancel.grid(row=8, column=1, padx=10, pady=10)
+    button_cancel.grid(row=8, column=1, padx=10, pady=20)
+
+    # Adjust column weights to improve layout
+    inst_window.grid_columnconfigure(0, weight=1)
+    inst_window.grid_columnconfigure(1, weight=1)
 
 # "Add Instrument" Button
 button = customtkinter.CTkButton(master=app, text="Add Instrument", command=show_panel)

@@ -243,7 +243,7 @@ def update_graph_tab(tab, instrument):
 def show_panel():
     # Create a Toplevel window for the pop-up
     inst_window = customtkinter.CTkToplevel(app)
-    inst_window.geometry("400x6 00")
+    inst_window.geometry("400x600")
     inst_window.title("Add Instrument")
 
     # Bring the window to the front
@@ -357,7 +357,7 @@ def show_panel():
 
 # "Add Instrument" Button
 button = customtkinter.CTkButton(master=app, text="Add Instrument", command=show_panel)
-button.place(x=110, y=80)
+button.place(x=110, y=40)
 
 # Initialize the main_tabview with a default message
 def initialize_main_tabview():

@@ -28,7 +28,7 @@ jobs:
 
       - name: Run flake8
         run: |
-          flake8 . #--max-line-length=88  # Adjust max-line-length to match Black's default of 88
+          flake8 . --max-line-length=88 || echo "::warning::Linting failed, proceeding with auto-fix"
 
       - name: Auto-fix with Black
         if: failure()

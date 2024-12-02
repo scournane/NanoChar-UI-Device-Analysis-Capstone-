@@ -20,7 +20,7 @@ tabview = customtkinter.CTkTabview(master=app, width=1000, height=800, anchor='w
 tabview.grid(row=0, column=1)
 
 # Tabs
-# ===========================================
+# ==========================================
 TABsettings = tabview.add("Settings")  
 TABtable = tabview.add("Table")
 TABgraph = tabview.add("Graph")  

@@ -146,7 +146,7 @@ def show_panel():
         }
         instruments_list.append(instrument)
 
-        # Close the window
+        # Close window
         inst_window.destroy()
 
         # Update the GUI to show the added instruments

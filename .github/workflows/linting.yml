@@ -37,7 +37,7 @@ jobs:
           git add .
           git commit -m "Apply Black formatting fixes" || echo "No changes to commit"
 
-      # Step 6: Push changes back
+      # Push Change
       - name: Push changes
         if: failure()
         uses: ad-m/github-push-action@v0.6.0

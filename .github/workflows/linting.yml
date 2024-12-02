@@ -28,6 +28,18 @@ jobs:
         run: |
           flake8 . #--max-line-length=88  # Adjust max-line-length to match Black's default of 88
 
-      - name: Run Black
+      - name: Auto-fix with Black
+        if: failure()
         run: |
-          black --check .  # Use --check to avoid modifying files, just check formatting
+          black .
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Apply Black formatting fixes" || echo "No changes to commit"
+
+      # Step 6: Push changes back
+      - name: Push changes
+        if: failure()
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}

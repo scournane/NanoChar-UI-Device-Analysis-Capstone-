@@ -169,7 +169,7 @@ button.place(x=110, y=80)
 def radiobutton_event():
     print("radiobutton toggled, current value:", radio_var.get())
 
-# LABEL EXAMPLE with RADIOBUTTON====================
+# LABEL EXAMPLE with RADIOBUTTON===================
 radio_var = tkinter.IntVar(value=0)
 radiobutton_1 = customtkinter.CTkRadioButton(master=tabview.tab("Settings"), text="Voltage", command=radiobutton_event, variable=radio_var, value=1)
 radiobutton_2 = customtkinter.CTkRadioButton(master=tabview.tab("Settings"), text="Current", command=radiobutton_event, variable=radio_var, value=2)

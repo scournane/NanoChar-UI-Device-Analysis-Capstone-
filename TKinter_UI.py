@@ -9,57 +9,38 @@ app = customtkinter.CTk()  # create CTk window
 app.geometry("1366x768")
 app.resizable(False, False)
 app.title("Nano - Device Window")
-app.grid_rowconfigure(0, weight=1)  # configure grid system to be center aligned
-app.grid_columnconfigure(0, weight=1)
+
+# Configure grid for main app window
+app.grid_rowconfigure(0, weight=1)
+app.grid_columnconfigure(0, weight=0)  # Instruments column
+app.grid_columnconfigure(1, weight=0)  # Experiments column
+app.grid_columnconfigure(2, weight=1)  # Tabview column expands
 
 def button_function():
     print("button pressed")
 
 
+# ===================================================================
+# TABVIEW ON THE RIGHT
 tabview = customtkinter.CTkTabview(master=app, width=1000, height=800, anchor='w', corner_radius=10)
-tabview.grid(row=0, column=1)
+tabview.grid(row=0, column=2, sticky="nsew")
 
 # Tabs
-# ==========================================
 TABsettings = tabview.add("Settings")  
 TABtable = tabview.add("Table")
 TABgraph = tabview.add("Graph")  
 tabview.set("Settings")  # set currently visible tab
 
-# Instruments List
-instruments_list = []
 
-# Left Frame
-frame = customtkinter.CTkFrame(app, width=300, height=700)
-frame.grid(row=0, column=0)
+# ===================================================================
+# INSTRUMENTS COLUMN (Left Column)
+frame_instruments = customtkinter.CTkFrame(app, width=300, height=700)
+frame_instruments.grid(row=0, column=0, sticky="ns", padx=(10, 5), pady=10)
 
-# Scrollable Frame to display instruments
-scrollable_frame = customtkinter.CTkScrollableFrame(master=frame, width=280, height=600)
-scrollable_frame.pack(pady=20, padx=10)
+instruments_label = customtkinter.CTkLabel(frame_instruments, text="Instruments", font=('Arial', 16, 'bold'))
+instruments_label.pack(pady=(10, 0))
 
-# Function to update instrument list display
-def update_instrument_list():
-    # Clear the scrollable_frame
-    for widget in scrollable_frame.winfo_children():
-        widget.destroy()
-
-    # Add labels for each instrument
-    for idx, instrument in enumerate(instruments_list):
-        label_inst = customtkinter.CTkLabel(scrollable_frame, text=f"{instrument['name']}", font=('Arial', 14, 'bold'))
-        label_inst.pack(pady=(10, 0))
-
-        # Display parameters
-        params_text = (
-            f"{instrument['voltage_type']}, {instrument['sweep_type']}\n"
-            f"{instrument['start_voltage']}V - {instrument['end_voltage']}V\n"
-            f"Step: {instrument['step_size']}V\n"
-            f"Limit: {instrument['limit']}A\n"
-            f"Measure: {instrument['measure']}"
-        )
-        label_params = customtkinter.CTkLabel(scrollable_frame, text=params_text)
-        label_params.pack(pady=(0, 10))
-
-# Function to show the Add Instrument panel
+# "Add Instrument" Button
 def show_panel():
     # Create a Toplevel window for the pop-up
     inst_window = customtkinter.CTkToplevel(app)
@@ -67,9 +48,9 @@ def show_panel():
     inst_window.title("Add Instrument")
 
     # Bring the window to the front
-    inst_window.transient(app)  # Set to be on top of main window
-    inst_window.grab_set()      # Make the popup modal
-    inst_window.focus_force()   # Focus on the popup
+    inst_window.transient(app)  # On top of main window
+    inst_window.grab_set()      # Modal
+    inst_window.focus_force()
 
     # Instrument Name
     label_name = customtkinter.CTkLabel(inst_window, text="Instrument Name:")
@@ -123,7 +104,6 @@ def show_panel():
 
     # Add and Cancel buttons
     def add_instrument():
-        # Get the values from the entries
         name = entry_name.get()
         voltage_type = combobox_voltage_type.get()
         sweep_type = combobox_sweep_type.get()
@@ -133,7 +113,6 @@ def show_panel():
         limit = entry_limit.get()
         measure = combobox_measure.get()
 
-        # Store the instrument data
         instrument = {
             'name': name,
             'voltage_type': voltage_type,
@@ -145,11 +124,7 @@ def show_panel():
             'measure': measure
         }
         instruments_list.append(instrument)
-
-        # Close window
         inst_window.destroy()
-
-        # Update the GUI to show the added instruments
         update_instrument_list()
 
     button_add = customtkinter.CTkButton(inst_window, text="Add", command=add_instrument)
@@ -157,19 +132,147 @@ def show_panel():
     button_cancel = customtkinter.CTkButton(inst_window, text="Cancel", command=inst_window.destroy)
     button_cancel.grid(row=8, column=1, padx=10, pady=20)
 
-    # Adjust column weights to improve layout
     inst_window.grid_columnconfigure(0, weight=1)
     inst_window.grid_columnconfigure(1, weight=1)
 
-# "Add Instrument" Button
-button = customtkinter.CTkButton(master=app, text="Add Instrument", command=show_panel)
-button.place(x=110, y=80)
+button_add_instrument = customtkinter.CTkButton(master=frame_instruments, text="Add Instrument", command=show_panel)
+button_add_instrument.pack(pady=10)
 
+# Instruments List
+instruments_list = []
+
+# Scrollable Frame to display instruments
+scrollable_frame_instruments = customtkinter.CTkScrollableFrame(master=frame_instruments, width=280, height=500)
+scrollable_frame_instruments.pack(pady=(0,10), padx=10)
+
+def update_instrument_list():
+    # Clear the scrollable_frame
+    for widget in scrollable_frame_instruments.winfo_children():
+        widget.destroy()
+
+    # Add labels for each instrument
+    for idx, instrument in enumerate(instruments_list):
+        label_inst = customtkinter.CTkLabel(scrollable_frame_instruments, text=f"{instrument['name']}", font=('Arial', 14, 'bold'))
+        label_inst.pack(pady=(10, 0))
+
+        params_text = (
+            f"{instrument['voltage_type']}, {instrument['sweep_type']}\n"
+            f"{instrument['start_voltage']}V - {instrument['end_voltage']}V\n"
+            f"Step: {instrument['step_size']}V\n"
+            f"Limit: {instrument['limit']}A\n"
+            f"Measure: {instrument['measure']}"
+        )
+        label_params = customtkinter.CTkLabel(scrollable_frame_instruments, text=params_text)
+        label_params.pack(pady=(0, 10))
+
+
+# ===================================================================
+# EXPERIMENTS COLUMN (Next to Instruments)
+frame_experiments = customtkinter.CTkFrame(app, width=300, height=700)
+frame_experiments.grid(row=0, column=1, sticky="ns", padx=(5, 5), pady=10)
+
+experiment_label = customtkinter.CTkLabel(frame_experiments, text="Experiments", font=('Arial', 16, 'bold'))
+experiment_label.pack(pady=(10, 0))
+
+experiments_list = []
+
+def update_experiment_list():
+    # Clear the experiment scrollable_frame
+    for widget in scrollable_frame_experiments.winfo_children():
+        widget.destroy()
+
+    # Add labels for each experiment
+    for idx, experiment in enumerate(experiments_list):
+        label_exp = customtkinter.CTkLabel(scrollable_frame_experiments, text=f"{experiment['name']}", font=('Arial', 14, 'bold'))
+        label_exp.pack(pady=(10, 0))
+
+        params_text = (
+            f"Type: {experiment['type']}\n"
+            f"Description: {experiment['description']}\n"
+            f"Start: {experiment['start_time']}\n"
+            f"End: {experiment['end_time']}"
+        )
+        label_params = customtkinter.CTkLabel(scrollable_frame_experiments, text=params_text)
+        label_params.pack(pady=(0, 10))
+
+def show_experiment_panel():
+    # Create a Toplevel window for the pop-up
+    exp_window = customtkinter.CTkToplevel(app)
+    exp_window.geometry("400x500")
+    exp_window.title("Add Experiment")
+
+    exp_window.transient(app)
+    exp_window.grab_set()
+    exp_window.focus_force()
+
+    # Experiment Name
+    label_name = customtkinter.CTkLabel(exp_window, text="Experiment Name:")
+    label_name.grid(row=0, column=0, padx=10, pady=10, sticky="e")
+    entry_name = customtkinter.CTkEntry(exp_window)
+    entry_name.grid(row=0, column=1, padx=10, pady=10)
+
+    # Experiment Type Combobox
+    label_type = customtkinter.CTkLabel(exp_window, text="Experiment Type:")
+    label_type.grid(row=1, column=0, padx=10, pady=10, sticky="e")
+    combobox_type = customtkinter.CTkComboBox(exp_window, values=["Calibration", "Measurement", "Test"])
+    combobox_type.set("Calibration")
+    combobox_type.grid(row=1, column=1, padx=10, pady=10)
+
+    # Experiment Description
+    label_description = customtkinter.CTkLabel(exp_window, text="Description:")
+    label_description.grid(row=2, column=0, padx=10, pady=10, sticky="e")
+    entry_description = customtkinter.CTkEntry(exp_window, width=300)
+    entry_description.grid(row=2, column=1, padx=10, pady=10)
+
+    # Start and End Time
+    label_start_time = customtkinter.CTkLabel(exp_window, text="Start Time:")
+    label_start_time.grid(row=3, column=0, padx=10, pady=10, sticky="e")
+    entry_start_time = customtkinter.CTkEntry(exp_window)
+    entry_start_time.grid(row=3, column=1, padx=10, pady=10)
+
+    label_end_time = customtkinter.CTkLabel(exp_window, text="End Time:")
+    label_end_time.grid(row=4, column=0, padx=10, pady=10, sticky="e")
+    entry_end_time = customtkinter.CTkEntry(exp_window)
+    entry_end_time.grid(row=4, column=1, padx=10, pady=10)
+
+    def add_experiment():
+        name = entry_name.get()
+        exp_type = combobox_type.get()
+        description = entry_description.get()
+        start_time = entry_start_time.get()
+        end_time = entry_end_time.get()
+
+        experiment = {
+            'name': name,
+            'type': exp_type,
+            'description': description,
+            'start_time': start_time,
+            'end_time': end_time
+        }
+        experiments_list.append(experiment)
+        exp_window.destroy()
+        update_experiment_list()
+
+    button_add = customtkinter.CTkButton(exp_window, text="Add", command=add_experiment)
+    button_add.grid(row=5, column=0, padx=10, pady=20)
+    button_cancel = customtkinter.CTkButton(exp_window, text="Cancel", command=exp_window.destroy)
+    button_cancel.grid(row=5, column=1, padx=10, pady=20)
+
+    exp_window.grid_columnconfigure(0, weight=1)
+    exp_window.grid_columnconfigure(1, weight=1)
+
+add_experiment_button = customtkinter.CTkButton(master=frame_experiments, text="Add Experiment", command=show_experiment_panel)
+add_experiment_button.pack(pady=10)
+
+scrollable_frame_experiments = customtkinter.CTkScrollableFrame(master=frame_experiments, width=280, height=500)
+scrollable_frame_experiments.pack(pady=(0,10), padx=10)
+
+
+# ===================================================================
 # RADIOBUTTONS EXAMPLE==============
 def radiobutton_event():
     print("radiobutton toggled, current value:", radio_var.get())
 
-# LABEL EXAMPLE with RADIOBUTTON===================
 radio_var = tkinter.IntVar(value=0)
 radiobutton_1 = customtkinter.CTkRadioButton(master=tabview.tab("Settings"), text="Voltage", command=radiobutton_event, variable=radio_var, value=1)
 radiobutton_2 = customtkinter.CTkRadioButton(master=tabview.tab("Settings"), text="Current", command=radiobutton_event, variable=radio_var, value=2)

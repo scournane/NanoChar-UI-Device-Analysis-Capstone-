@@ -4,6 +4,8 @@ from pymeasure.experiment.procedure import Procedure
 from pymeasure.experiment.results import Results
 from pymeasure.experiment.workers import Worker
 from instruments.keithley_6221 import Keithley6221Instrument
+import numpy as np
+import matplotlib.pyplot as plt
 
 class WaveformExperiment(Procedure):
     amplitude = FloatParameter("Amplitude", units="A", minimum=2e-12, maximum=0.105, default=0.05)
@@ -20,7 +22,15 @@ class WaveformExperiment(Procedure):
             duration_cycles=self.duration_cycles
         )
 
-        # Save results
+        t = np.linspace(0, self.duration_cycles / self.frequency, 1000)
+        waveform = self.amplitude * np.where((t % (1/self.frequency)) < (self.duty_cycle/100 * 1/self.frequency), 1, 0)
+        plt.plot(t, waveform, 'b-')
+        plt.xlabel("Time (s)")
+        plt.ylabel("Amplitude (A)")
+        plt.title("Simulated Square Waveform")
+        plt.grid(True)
+        plt.show()
+
         now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"WaveformExperiment_Results_{now}.csv"
         with open(filename, "w") as f:
@@ -28,7 +38,6 @@ class WaveformExperiment(Procedure):
                 f.write(f"{key},{value}\n")
         print(f"Results saved to {filename}")
 
-# Run the experiment
 def run_waveform_experiment():
     experiment = WaveformExperiment()
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

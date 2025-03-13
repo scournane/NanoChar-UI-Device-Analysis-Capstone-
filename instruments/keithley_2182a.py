@@ -9,13 +9,8 @@ class Keithley2182Instrument:
         self.nano.active_channel = 1
         self.nano.channel_function = "voltage"
 
-
     def measure_nanovoltage(self, samples=100, nplc=5):
-        """
-        Measures voltage using Keithley 2182A.
-        """
         self.nano.ch_1.setup_voltage(auto_range=True, nplc=nplc)
-        #==/Had to change self.nano.voltage to self.nano.voltage_nplc
         voltages = np.array([self.nano.voltage_nplc for _ in range(samples)])
         avg_voltage = np.mean(voltages)
         std_voltage = np.std(voltages)

@@ -1,9 +1,15 @@
 import tkinter
 import customtkinter
 import threading
+from datetime import datetime
+from experiments.iv_experiment import IVExperiment, run_iv_experiment
+from experiments.nanovolt_experiment import NanoVoltExperiment, run_nanovolt_experiment
+from experiments.waveform_experiment import WaveformExperiment, run_waveform_experiment
 from instruments.keithley_2450 import Keithley2450Instrument
 from instruments.keithley_6221 import Keithley6221Instrument
 from instruments.keithley_2182a import Keithley2182Instrument
+from pymeasure.experiment.results import Results
+from pymeasure.experiment.workers import Worker
 
 # Set appearance and theme
 customtkinter.set_appearance_mode("dark")
@@ -164,13 +170,11 @@ def refresh_experiment_combobox():
     combobox_exp_select.configure(values=new_values)
 
 def start_experiment(exp_name):
-    # Find the experiment details by name
     experiment = next((exp for exp in experiments_list if exp['name'] == exp_name), None)
     if not experiment:
         print("Experiment not found!")
         return
 
-    # Find the instrument details by name
     instrument = next((inst for inst in instruments_list if inst['name'] == experiment['instrument']), None)
     if not instrument:
         print("Instrument not found!")
@@ -180,16 +184,13 @@ def start_experiment(exp_name):
         try:
             if instrument['type'] == "Keithley 2450":
                 print("Running I-V measurement on Keithley 2450...")
-                keithley = Keithley2450Instrument()
-                keithley.iv_measurement()
+                run_iv_experiment()
             elif instrument['type'] == "Keithley 6221":
                 print("Running waveform generation on Keithley 6221...")
-                keithley = Keithley6221Instrument()
-                keithley.generate_waveform()
+                run_waveform_experiment()
             elif instrument['type'] == "Keithley 2182A":
                 print("Running nanovoltage measurement on Keithley 2182A...")
-                keithley = Keithley2182Instrument()
-                keithley.measure_nanovoltage()
+                run_nanovolt_experiment()
             else:
                 print("Unknown instrument type.")
         except Exception as e:
@@ -210,28 +211,28 @@ def show_iv_experiment_panel():
     iv_window.grab_set()
 
     # Data Points
-    label_data_points = customtkinter.CTkLabel(iv_window, text="Data Points:")
+    label_data_points = customtkinter.CTkLabel(iv_window, text="Data Points (10-10000):")
     label_data_points.grid(row=0, column=0, padx=10, pady=10, sticky="e")
     entry_data_points = customtkinter.CTkEntry(iv_window)
     entry_data_points.grid(row=0, column=1, padx=10, pady=10)
     entry_data_points.insert(0, "100")  # default value
 
     # Measurements per Point
-    label_measurements = customtkinter.CTkLabel(iv_window, text="Measurements per Point:")
+    label_measurements = customtkinter.CTkLabel(iv_window, text="Measurements (1-100):")
     label_measurements.grid(row=1, column=0, padx=10, pady=10, sticky="e")
     entry_measurements = customtkinter.CTkEntry(iv_window)
     entry_measurements.grid(row=1, column=1, padx=10, pady=10)
     entry_measurements.insert(0, "10")  # default value
 
     # Minimum Current (A)
-    label_current_min = customtkinter.CTkLabel(iv_window, text="Minimum Current (A):")
+    label_current_min = customtkinter.CTkLabel(iv_window, text="Min Current (-1.05-0 A):")
     label_current_min.grid(row=2, column=0, padx=10, pady=10, sticky="e")
     entry_current_min = customtkinter.CTkEntry(iv_window)
     entry_current_min.grid(row=2, column=1, padx=10, pady=10)
     entry_current_min.insert(0, "-0.001")  # default value
 
     # Maximum Current (A)
-    label_current_max = customtkinter.CTkLabel(iv_window, text="Maximum Current (A):")
+    label_current_max = customtkinter.CTkLabel(iv_window, text="Max Current (0-1.05 A):")
     label_current_max.grid(row=3, column=0, padx=10, pady=10, sticky="e")
     entry_current_max = customtkinter.CTkEntry(iv_window)
     entry_current_max.grid(row=3, column=1, padx=10, pady=10)
@@ -243,50 +244,39 @@ def show_iv_experiment_panel():
             measurements = int(entry_measurements.get())
             current_min = float(entry_current_min.get())
             current_max = float(entry_current_max.get())
-        except ValueError:
-            print("Invalid input. Please enter valid numbers.")
-            return
 
-        try:
-            # Perform the I-V sweep using the Keithley2450Instrument
-            keithley = Keithley2450Instrument()
-            voltages, currents = keithley.iv_measurement(
-                current_min=current_min,
-                current_max=current_max,
-                data_points=data_points,
-                measurements=measurements
-            )
+            # Validate bounds
+            if not (10 <= data_points <= 10000):
+                raise ValueError("Data Points must be between 10 and 10000")
+            if not (1 <= measurements <= 100):
+                raise ValueError("Measurements must be between 1 and 100")
+            if not (-1.05 <= current_min <= 0):
+                raise ValueError("Minimum Current must be between -1.05 and 0 A")
+            if not (0 <= current_max <= 1.05):
+                raise ValueError("Maximum Current must be between 0 and 1.05 A")
+
+            experiment = IVExperiment()
+            experiment.data_points = data_points
+            experiment.measurements = measurements
+            experiment.current_min = current_min
+            experiment.current_max = current_max
+            now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            filename = f"IVExperiment_Results_{now}.csv"
+            results = Results(experiment, filename)
+            worker = Worker(results)
+            worker.start()
+            iv_window.destroy()  # Close the IV experiment window when done
+        except ValueError as e:
+            print(f"Invalid input: {e}")
         except Exception as e:
-            print(f"Error running IV measurement: {e}")
-            return
+            print(f"Error running IV experiment: {e}")
 
-        # Save the results to a CSV file
-        from datetime import datetime
-        now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"IVExperiment_Results_{now}.csv"
-        with open(filename, "w") as f:
-            f.write("Voltage (V), Current (A)\n")
-            for v, i in zip(voltages, currents):
-                f.write(f"{v},{i}\n")
-        print(f"Results saved to {filename}")
-
-        # Plot the I-V curve
-        import matplotlib.pyplot as plt
-        plt.plot(voltages, currents, 'ko-')
-        plt.xlabel("Voltage (V)")
-        plt.ylabel("Current (A)")
-        plt.title("I-V Curve Measurement")
-        plt.show()
-
-        iv_window.destroy()  # Close the IV experiment window when done
-
-    button_run_iv = customtkinter.CTkButton(iv_window, text="Run IV Experiment", command=run_iv_experiment_from_ui)
+    button_run_iv = customtkinter.CTkButton(iv_window, text="Run IV Experiment", command=lambda: threading.Thread(target=run_iv_experiment_from_ui).start())
     button_run_iv.grid(row=4, column=0, columnspan=2, padx=10, pady=20)
 
 # Add a new button to your Controls Panel for running the IV Experiment
 button_iv_experiment = customtkinter.CTkButton(frame_controls, text="IV Experiment", command=show_iv_experiment_panel)
 button_iv_experiment.pack(pady=10)
-
 
 # Start the main event loop
 app.mainloop()

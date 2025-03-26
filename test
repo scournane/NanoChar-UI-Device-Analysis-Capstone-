@@ -1,0 +1,2 @@
+from pymeasure.instruments.resources import list_resources 
+print("Available GPIB Instruments:", list_resources())

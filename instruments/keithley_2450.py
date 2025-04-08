@@ -1,4 +1,3 @@
-
 from pymeasure.instruments.keithley import Keithley2450
 from pymeasure.instruments.resources import list_resources
 from pymeasure.adapters import VISAAdapter
@@ -17,9 +16,10 @@ class Keithley2450Instrument:
         self.smu.beep(frequency=90, duration=1.0)
         print("Keithley 2450 Connected - Beep!")
 
-    def iv_measurement(self, current_min=-1e-3, current_max=1e-3, data_points=10, measurements=10):
+    def iv_measurement_current(self, current_min=-1e-3, current_max=1e-3, data_points=10, measurements=10):
         """
-        Performs an I-V curve measurement.
+        Performs an I-V measurement by sourcing current and measuring the voltage.
+        Returns a tuple (currents, measured voltages).
         """
         import numpy as np
         import matplotlib.pyplot as plt
@@ -35,10 +35,37 @@ class Keithley2450Instrument:
         self.smu.shutdown()
         v_avg = np.mean(voltages, axis=1)
 
-        plt.plot(v_avg, currents, 'ko-')
-        plt.xlabel("Voltage (V)")
-        plt.ylabel("Current (A)")
-        plt.title("I-V Curve Measurement")
+        plt.plot(currents, v_avg, 'ko-')
+        plt.xlabel("Current (A)")
+        plt.ylabel("Voltage (V)")
+        plt.title("I-V Curve Measurement (Current Sweep)")
         plt.show()
 
-        return v_avg, currents
+        return currents, v_avg
+
+    def iv_measurement_voltage(self, voltage_min=-1e-3, voltage_max=1e-3, data_points=10, measurements=10):
+        """
+        Performs an I-V measurement by sourcing voltage and measuring the current.
+        Returns a tuple (voltages, measured currents).
+        """
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        voltages = np.linspace(voltage_min, voltage_max, data_points)
+        currents = np.zeros((data_points, measurements))
+
+        for i, voltage in enumerate(voltages):
+            self.smu.ramp_to_voltage(voltage, steps=10, pause=1e-3)
+            for j in range(measurements):
+                currents[i, j] = self.smu.current
+
+        self.smu.shutdown()
+        i_avg = np.mean(currents, axis=1)
+
+        plt.plot(voltages, i_avg, 'ko-')
+        plt.xlabel("Voltage (V)")
+        plt.ylabel("Current (A)")
+        plt.title("I-V Curve Measurement (Voltage Sweep)")
+        plt.show()
+
+        return voltages, i_avg
